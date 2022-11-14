@@ -31,6 +31,7 @@ $ sudo docker rmi tomcat  # удалить "образ" REPOSITORY
 
 
 ## Dont write!!!
+```bash
 docker build -t denis .
 docker images
 
@@ -79,3 +80,4 @@ docker rmi -f $(docker images -q)    # Delete all Images
 
 # docker network ls - посмотреть сети подключения докера
 # lsof -i -P -n  | grep docker - посмотреть открытые порты докера
+```
