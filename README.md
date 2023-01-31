@@ -5,26 +5,26 @@ $ sudo apt update  # обновляемся
 $ sudo apt install apt-transport-https  # установить https протокол
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add  # - дабовить ключ
 $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"  # актуализировать версию
-$ sudo apt update  # ещё раз обновляемся
-$ sudo apt install docker-ce  # устанавливаем docker
+$ sudo apt update               # ещё раз обновляемся
+$ sudo apt install docker-ce    # устанавливаем docker
 $ sudo systemctl status docker  # проверяем процесс докера
 (optional) $ sudo usermod -aG docker $USER  # можно добавить юзера, как рута
 ```
 Docker готов к работе!
 ```ruby
 $ sudo docker run hello-world  # запустить/скачать docker "image" test
-$ sudo docker images  # показать "образы", которые есть
-$ sudo docker ps  # показать запущенные "контейнеры"
-$ sudo docker ps -a  # показать "контейнеры", которые были запущены
-$ sudo docker search tomcat  # произвести поиск в консоли по Docker-Hub
-$ sudo docker pull tomcat  # скачать "image" tomcat
-$ sudo docker run -it -p 8080 tomcat  # запустить "контейнер" it(интерактивно в консоли), p(порт веб-сервера 8080), томкэт
-http://192.168.197.128:8080/  # идём тестить в браузер (ip естественно ваш вставляем)
-$ sudo docker run -d -p 8080 tomcat  # запустить "контейнер" deamon (как процесс)
+$ sudo docker images           # показать "образы", которые есть
+$ sudo docker ps               # показать запущенные "контейнеры"
+$ sudo docker ps -a            # показать "контейнеры", которые были запущены
+$ sudo docker search tomcat    # произвести поиск в консоли по Docker-Hub
+$ sudo docker pull tomcat      # скачать "image" tomcat
+$ sudo docker run -it -p 8080 tomcat   # запустить "контейнер" it(интерактивно в консоли), p(порт веб-сервера 8080), томкэт
+http://192.168.197.128:8080/           # идём тестить в браузер (ip естественно ваш вставляем)
+$ sudo docker run -d -p 8080 tomcat    # запустить "контейнер" deamon (как процесс)
 $ sudo docker run -d -p 8888:80 nginx  # запустить "контейнер" deamon (как процесс), p(делаем переброс порта веб-сервера с 80 на 8888), nginx
-$ sudo docker stop e1d090e425fd  # остановить "контейнер" CONTAINER ID
-$ sudo docker rm ada1329e87c9  # стереть "контейнер" CONTAINER ID (который не используется)
-$ sudo docker rmi tomcat  # удалить "образ" REPOSITORY
+$ sudo docker stop e1d090e425fd        # остановить "контейнер" CONTAINER ID
+$ sudo docker rm ada1329e87c9          # стереть "контейнер" CONTAINER ID (который не используется)
+$ sudo docker rmi tomcat               # удалить "образ" REPOSITORY
 ```
 
 
