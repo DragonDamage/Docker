@@ -28,5 +28,11 @@ $ docker rm ada1329e87c9          # удалить "контейнер" CONTAINE
 $ docker rmi tomcat               # удалить "образ" REPOSITORY
 $ docker network ls               # посмотреть сети подключения докера
 $ lsof -i -P -n  | grep docker    # посмотреть открытые порты докера
+$ docker start                    # запустить контейнер
+$ docker logs                     # посмотреть логи контейнера
+$ docker exec                     # запустить команду внутри контейнера
+$ docker stop name_container      # остановить контейнер
+$ docker stop $(docker ps -a -q)  # остановить все контейнеры
+$ docker kill name_container      # резко остановить контейнер
 docker build -t [имя-образа] [путь-до-dockerfile]    # создать образ из Dockerfile
 ```
