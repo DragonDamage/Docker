@@ -3,7 +3,7 @@ Instruction for Docker on Linux
 ```ruby
 $ apt-get update                       # обновляемся
 $ apt-get install apt-transport-https  # установить https протокол
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add  # - дабовить ключ
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add  # - дабовить ключ
 $ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"  # актуализировать версию
 $ apt-get update                 # ещё раз обновляемся
 $ apt-get install docker-ce      # устанавливаем docker
@@ -34,5 +34,5 @@ $ docker exec                     # запустить команду внутр
 $ docker stop name_container      # остановить контейнер
 $ docker stop $(docker ps -a -q)  # остановить все контейнеры
 $ docker kill name_container      # резко остановить контейнер
-docker build -t [имя-образа] [путь-до-dockerfile]    # создать образ из Dockerfile
+$ docker build -t [имя-образа] [путь-до-dockerfile]    # создать образ из Dockerfile
 ```
