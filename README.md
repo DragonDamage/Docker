@@ -76,31 +76,31 @@ $ docker cp /host/path {CONTAINER_ID}:/path/to/file  # Копировать фа
 
 ## :blue_book: Основные команды для работы с образами:
 ```ruby
-$ docker run {IMAGE_NAME}     # Запустить/скачать docker контейнер на основе определенного образа
-$ docker images               # Показать образы, которые есть на машине
-$ docker image ls --no-trunc  # Показать образы не сокращая их айди (sha256)
-$ docker search {IMAGE_NAME}  # Произвести поиск образа в консоли по Docker-Hub
-$ docker pull   {IMAGE_NAME}  # Скачать образ (по умолчанию latest - последюю версию)
-$ docker pull   {IMAGE_NAME} {IMAGE_TAG} # Скачать образ указывая его конкретную версию
-$ docker push   {IMAGE_NAME}  # Загрузить образ в Docker-Hub (Либо $ docker push username/repository:tag)
-$ docker rmi    {IMAGE_NAME}  # Удалить образ
-$ docker build -t {IMAGE_NAME} {path-to-dockerfile}   # Создать образ из Dockerfile (./path/to/dockerfile)
-$ docker tag image_id new_image_name:new_tag          # Присвоение тега (метки) Docker образу
-$ docker save -o image.tar image_id                   # Сохранение Docker образа в архивный файл
-$ docker load -i image.tar                            # Загрузка образа Docker из архивного файла
-$ docker history {IMAGE_NAME}                         # Посмотреть историю слоев Docker образа
+$ docker run {IMAGE_NAME}                            # Запустить/скачать docker контейнер на основе определенного образа
+$ docker images                                      # Показать образы, которые есть на машине
+$ docker image ls --no-trunc                         # Показать образы не сокращая их айди (sha256)
+$ docker search {IMAGE_NAME}                         # Произвести поиск образа в консоли по Docker-Hub
+$ docker pull   {IMAGE_NAME}                         # Скачать образ (по умолчанию latest - последюю версию)
+$ docker pull   {IMAGE_NAME} {IMAGE_TAG}             # Скачать образ указывая его конкретную версию
+$ docker push   {IMAGE_NAME}                         # Загрузить образ в Docker-Hub (Либо $ docker push username/repository:tag)
+$ docker rmi    {IMAGE_NAME}                         # Удалить образ
+$ docker build -t {IMAGE_NAME} {path-to-dockerfile}  # Создать образ из Dockerfile (./path/to/dockerfile)
+$ docker tag image_id new_image_name:new_tag         # Присвоение тега (метки) Docker образу
+$ docker save -o image.tar image_id                  # Сохранение Docker образа в архивный файл
+$ docker load -i image.tar                           # Загрузка образа Docker из архивного файла
+$ docker history {IMAGE_NAME}                        # Посмотреть историю слоев Docker образа
 ```
 
 ## :chart_with_upwards_trend: Основные команды для работы с сетью:
 ```ruby
-$ docker network ls                # Посмотреть сети подключения докера
-$ lsof -i -P -n  | grep docker     # Посмотреть открытые порты докера
-$ docker network create mynetwork  # Создание новой сети Docker
-$ docker network inspect {NETWORK_ID}                    # Получение подробной информации о сети Docker
-$ docker network connect {NETWORK_ID} {CONTAINER_ID}     # Подключение контейнера к сети Docker
-$ docker network disconnect {NETWORK_ID} {CONTAINER_ID}  # Отключение контейнера от сети Docker
-$ docker network rm {NETWORK_ID}  # Удаление сети Docker
-$ docker network prune            # Удаление неиспользуемых сетей Docker
+$ docker network ls                                          # Посмотреть сети подключения докера
+$ lsof -i -P -n  | grep docker                               # Посмотреть открытые порты докера
+$ docker network create mynetwork                            # Создание новой сети Docker
+$ docker network inspect {NETWORK_ID}                        # Получение подробной информации о сети Docker
+$ docker network connect {NETWORK_ID} {CONTAINER_ID}         # Подключение контейнера к сети Docker
+$ docker network disconnect {NETWORK_ID} {CONTAINER_ID}      # Отключение контейнера от сети Docker
+$ docker network rm {NETWORK_ID}                             # Удаление сети Docker
+$ docker network prune                                       # Удаление неиспользуемых сетей Docker
 $ docker run --network {NETWORK_ID} {IMAGE_NAME}             # Запуск контейнера с присоединением к определенной сети Docker
 $ docker network create --driver bridge mynetwork            # Создание сети Docker с определенным драйвером
 $ docker network inspect --format '{{.Name}}' {NETWORK_ID}   # Получение определенной информации о сети Docker в определенном формате
