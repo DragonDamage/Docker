@@ -57,6 +57,7 @@ $ docker stop $(docker ps -a -q)  # Остановить все контейне
 $ docker kill {CONTAINER_ID}      # Резко остановить контейнер
 $ docker rm {CONTAINER_ID}        # Удалить контейнер (перезапустить его)
 $ docker rm -f {CONTAINER_ID}     # Удалить контейнер с принудительной остановкой его
+$ docker container prune          # Удалить все контейнеры, которые остановлены
 $ docker restart {CONTAINER_ID}   # Перезапустить контейнер
 $ docker logs {CONTAINER_ID}      # Посмотреть логи контейнера
 $ docker logs -f {CONTAINER_ID}   # Посмотреть логи контейнера и отображать их в режиме реального времени
