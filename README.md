@@ -6,13 +6,16 @@
 | **Docker контейнер** | Представляет собой экземпляр образа, который запускается и работает независимо от других контейнеров. Контейнеры изолированы от внешней среды и других контейнеров. |
 | **Docker Образ (Docker Image)** | Представляет собой шаблоны или инструкции для создания контейнеров. |
 | **Docker daemon (dockerd)** | Это основной компонент Docker, который отвечает за управление контейнерами и выполнение команд Docker. Он работает как фоновый процесс на хостовой операционной системе и прослушивает API запросы от Docker клиента. |
-| **Docker Hub/ Docker registry**  | Это облачный репозиторий образов Docker, где разработчики могут делиться своими образами и использовать образы, созданные другими сообществами. Docker Hub также предоставляет функциональность для автоматической сборки и публикации образов из репозиториев кода, таких как GitHub. |
+| **Docker (Client/CLI)** | Это интерфейс взаимодействия пользователя с Docker-демоном. |
+| **Docker Hub/ Docker registry** | Это облачный репозиторий образов Docker, где разработчики могут делиться своими образами и использовать образы, созданные другими сообществами. Docker Hub также предоставляет функциональность для автоматической сборки и публикации образов из репозиториев кода, таких как GitHub. |
 | **Пространства имен (Namespaces)** | Это механизм, который изолирует глобальные ресурсы операционной системы для каждого контейнера, создавая впечатление, что каждый контейнер имеет свою собственную изолированную среду. |
 | **Dockerfile**        | Это текстовый файл, в котором определяется конфигурация образа Docker. В Dockerfile вы указываете инструкции для создания образа, такие как установка зависимостей, копирование файлов, настройка сети и другие операции. Затем Dockerfile используется для создания образа с помощью команды docker build. |
 | **Docker Compose**    | Это инструмент для определения и управления многоконтейнерными приложениями. С помощью файла конфигурации YAML вы можете определить несколько контейнеров, их зависимости и настройки сети. Затем Docker Compose позволяет легко запускать и остановить все контейнеры одной командой. |
 | **Bind Mounts**       | Это папка с файлами на локальном хосте, с которой контейнер может работать без ограничений. |
 | **Volumes**           | Это папка с файлами на локальном хосте, которая управляется только докером (более строгий вариант). |
+| **Storage driver**    | Это способ хранения образов и контейнеров на сервере. К примеру: AUFS, Overlay2, BTRFS, ZFS. |
 
+## 📋 Архитектура:
 ![Screenshot](Docker_Architecture.png)
 
 
@@ -86,6 +89,7 @@ $ docker pull   {IMAGE_NAME}                         # Скачать образ
 $ docker pull   {IMAGE_NAME} {IMAGE_TAG}             # Скачать образ указывая его конкретную версию
 $ docker push   {IMAGE_NAME}                         # Загрузить образ в Docker-Hub (Либо $ docker push username/repository:tag)
 $ docker rmi    {IMAGE_NAME}                         # Удалить образ
+$ docker build -t {name_image}:{tag_image}           # Создать образ с указанием тэга
 $ docker build -t {IMAGE_NAME} {path-to-dockerfile}  # Создать образ из Dockerfile (./path/to/dockerfile)
 $ docker tag image_id new_image_name:new_tag         # Присвоение тега (метки) Docker образу
 $ docker save -o image.tar image_id                  # Сохранение Docker образа в архивный файл
@@ -98,22 +102,52 @@ $ docker inspect {IMAGE_NAME}                        # Посмотреть по
 ```ruby
 $ docker network ls                                          # Посмотреть сети подключения докера
 $ lsof -i -P -n  | grep docker                               # Посмотреть открытые порты докера
-$ docker network create mynetwork                            # Создание новой сети Docker
+$ docker network create {NETWORK_NAME}                       # Создание новой сети Docker
 $ docker network inspect {NETWORK_ID}                        # Получение подробной информации о сети Docker
 $ docker network connect {NETWORK_ID} {CONTAINER_ID}         # Подключение контейнера к сети Docker
 $ docker network disconnect {NETWORK_ID} {CONTAINER_ID}      # Отключение контейнера от сети Docker
 $ docker network rm {NETWORK_ID}                             # Удаление сети Docker
 $ docker network prune                                       # Удаление неиспользуемых сетей Docker
 $ docker run --network {NETWORK_ID} {IMAGE_NAME}             # Запуск контейнера с присоединением к определенной сети Docker
-$ docker network create --driver bridge mynetwork            # Создание сети Docker с определенным драйвером
+$ docker network create --driver bridge {NETWORK_NAME}       # Создание сети Docker с определенным драйвером
 $ docker network inspect --format '{{.Name}}' {NETWORK_ID}   # Получение определенной информации о сети Docker в определенном формате
+```
+
+
+## :computer: Полная установка docker compose на Linux:
+```ruby
+$ apt-get update
+$ apt-get install docker-compose-plugin
+$ apt-get install ca-certificates curl gnupg
+$ mkdir -p /etc/apt/keyrings
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+$ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$ apt-get update
+$ apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+$ docker --version
+$ docker compose version
+```
+
+
+## 📑 Основные команды для работы с Docker Compose:
+```ruby
+$ docker compose version                  # Посмотреть версию docker compose
+$ docker compose pull                     # Скачать все образы, которые указаны в docker-compose.yml
+$ docker compose push                     # Скачать образ из локально реестра в удаленный реестр (Docker Registry)
+$ docker compose up -d                    # Запуск контейнеров из docker-compose.yml
+$ docker compose down                     # Остановка всех контейнеров
+$ docker compose ps                       # Посмотреть список активных контейнеров данного docker-compose.yml
+$ docker compose logs -f {name_services}  # Просмотр логов
+$ docker compose top                      # Посмотреть какие процессы запущены в контейнерах и от каких пользаков, и когда
 ```
 
 
 ## :scroll: Пример Dockerfile:
 ```ruby
 # Используем базовый образ Ubuntu
-FROM ubuntu:latest
+FROM {name_container}:{version_container}  # Пример: FROM ubuntu:latest
 
 # Устанавливаем необходимые пакеты
 RUN apt-get update && apt-get install -y \
@@ -121,7 +155,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip
 
 # Копируем файлы в контейнер
-COPY . /app
+COPY {config.cfg} /{work_directory}  # Пример: COPY . /app
 
 # Устанавливаем зависимости
 RUN pip3 install -r /app/requirements.txt
@@ -168,6 +202,69 @@ services:
 Сервис `db` использует образ MySQL версии 5.7 и устанавливает несколько переменных окружения для настройки базы данных.
 Чтобы запустить этот `docker-compose` файл, вам нужно выполнить команду `docker-compose up` в директории, где находится этот файл. `Docker-compose` затем создаст и запустит контейнеры, описанные в файле.
 
+
+
+
+## 📚 Docker Swarm:
+`Docker Swarm` — это система оркестрации для Docker, которая превращает набор Docker-хостов в полноценный кластер, называемый Docker Swarm
+
+```ruby
+1. 'Динамическое управление ролями: /manager worker'
+Чтобы динамически добавить/убрать роль manager нужно выполнить команду:
+$ docker node promote {node_name}  # Добавление роли manager
+$ docker node demote {node_name}   # Удаление роли manager
+
+2. 'Динамическое масштабирование сервисов'
+$ docker service update =3 my-service  # Добавление реплик сервиса
+$ docker service rollback my-service   # Откат изменений (отмена последнего изменения конфигурации)
+
+3. 'Инициализация кластера'
+$ docker swarm init --advertise-addr {ip_address>}
+
+4. 'Вывод актуальных ключей для добавления нод в кластер'
+$ docker swarm join --token
+$ docker swarm join-token -q worker
+$ docker swarm join-token -q manager
+
+5. 'Просмотр и обновление сертификатов кластера'
+$ docker swarm ca
+$ docker swarm ca --rotate
+
+6. 'Удаление ноды из кластера'
+$ docker swarm leave
+
+7. 'Очистка ноды Docker Swarm перед удалением из кластера'
+$ docker node update --availability drain node01
+
+8. 'docker node — набор команд для управления свойствами, ролями, атрибутами нод Docker Swarm кластера'
+Доступны команды: ls, promote, demote, inspect, ps, rm, update
+$ docker node promote node02 node03  # Добавление роли manager для 2 нод Docker Swarm в работающем кластере
+$ docker node demote node02 node03   # Удаление роли manager для 2 нод Docker Swarm в работающем кластере
+
+9. 'docker service — набор команд для управления сервисами и их свойствами, работающими в кластере Docker Swarm'
+Доступны команды: create, inspect, logs, ps, ls, rollback, rm, scale, update
+$ docker service create --name web --replicas 3 --replicas-max-per-node 1 --constraint node.platform.linux==linux nginx:alpine  # Добавление сервиса nginx в количестве 3 реплик и определение критериев для целевых нод
+$ docker service ls  # Просмотр статуса сервиса
+Вывод:
+'
+ID NAME MODE REPLICAS IMAGE PORTS
+b6lww17hrr4e web replicated 3/3 nginx:alpine
+'
+$ docker service rm {ID_SERVICE}  # Удаление сервиса
+
+10. 'docker stack — набор команд для управления сервисами и их свойствами в формате идентичном Docker Compose, но для кластера Docker Swarm'
+Доступны команды: deploy, ls, ps, rm, services
+
+$ docker stack deploy --compose-file docker-compose.yml nginx   # Деплой сервиса nginx с использованием конфигурационного Compose файла
+$ docker stack rm netology
+$ docker swarm init --advertise-addr 10.128.0.28                # Инициализация кластера docker swarm
+Вывод:
+docker swarm join --token SWMTKN-1-5******* 10.128.0.28:2377
+$ docker swarm join --token SWMTKN-1-5******* 10.128.0.28:2377  # Добавление воркеров [Делаем на первом воркере]
+$ docker swarm join --token SWMTKN-1-5******* 10.128.0.28:2377  # Делаем на втором воркере
+$ docker node ls                                                # Посмотреть состав кластера
+$ docker swarm init --advertise-addr {IP}                       # Инициализация нового Docker Swarm кластера из Docker-нод
+```
 
 
 
