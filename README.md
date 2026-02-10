@@ -40,7 +40,33 @@ $ apt-get update                 # Ещё раз обновляемся
 $ apt-get install docker-ce      # Устанавливаем docker
 $ systemctl status docker        # Проверяем процесс докера
 $ sudo usermod -aG docker $USER  # Можно добавить юзера, как рута (optional)
+$ getent group docker            # Посмотреть пользаков в группе docker
+
+# Включение службы
+$ sudo systemctl enable docker --now
+$ systemctl status docker
+$ docker info                    # Проверка работы Docker
 ```
+
+
+## :computer: Дополнительная информация:
+```ruby
+$ cat /etc/docker/daemon.json           # Файл с реестрами
+$ docker info | grep "Docker Root Dir"  # Посмотреть в какую директорию скачиваются образы docker
+Вывод:
+Docker Root Dir: /opt/minio/docker-data
+
+# Перемещение docker (для того, чтобы хватало места для образов)
+$ systemctl stop docker
+$ mv /var/lib/docker /opt/taxmon/docker
+$ ln -s /opt/taxmon/docker /var/lib/docker
+$ systemctl start docker
+
+# Если не проставилась инфа в REPOSITORY и TAG, можно сделать вручную
+$ docker tag 49bfe3d5e57e rtknm:back-svk
+$ docker rmi repository:back-svk  # Удалить дубль образа с одинаковыми ID
+```
+
 
 ## :green_book: Основные команды для работы с контейнерами:
 ```ruby
@@ -53,6 +79,7 @@ http://192.168.197.128:8080/      # Идём тестить в браузер (i
 $ docker ps                       # Показать только запущенне контейнеры
 $ docker ps -a                    # Показать все контейнеры
 $ docker ps -s                    # Показать все контейнеры и их обьём
+$ docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"  # Вывести красиво все контейнеры
 $ docker start {CONTAINER_ID}     # Запустить контейнер
 $ docker start -a {CONTAINER_ID}  # Запустить контейнер и сразу смотреть по нему логи
 $ docker stop {CONTAINER_ID}      # Остановка запущенного контейнера
@@ -145,7 +172,7 @@ $ docker compose top                      # Посмотреть какие пр
 
 
 ## :scroll: Пример Dockerfile:
-```ruby
+```dockerfile
 # Используем базовый образ Ubuntu
 FROM {name_container}:{version_container}  # Пример: FROM ubuntu:latest
 
@@ -167,41 +194,180 @@ WORKDIR /app
 CMD ["python3", "app.py"]
 ```
 
-```docker build -t my-app .``` - Собираем Docker образ
+`docker build -t my-app .` - Собираем Docker образ
 
-```docker run -d -p 8080:8080 my-app``` - Запускаем контейнер
+`docker run -d -p 8080:8080 my-app` - Запускаем контейнер
 
 Теперь приложение будет доступно по адресу http://localhost:8080
 
 
 
 
-## :scroll: Пример docker-compose файла:
-```ruby
+## :scroll: Пример docker-compose.yml файла:
+```yml
 version: '3'
+
+# Секция общих настроек логирования
+x-logging: &logging
+  driver: "json-file"  # Использовать драйвер json-file для логов
+  options:
+    max-size: "1m"     # Максимальный размер одного лог-файла
+    max-file: "1"      # Максимальное количество файлов логов
+
+# Другой шаблон логирования (30MB файлы)
+x-logging-30: &logging-30
+  driver: "json-file"
+  options:
+    max-size: "30m"
+    max-file: "3"
+
+# Определение сетей
+networks:
+  shared-net:
+    external: true     # Использовать внешнюю сеть (уже созданную)
+
+# Секция сервисов (контейнеров)
 services:
-  web:  # Первый сервис
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-  db:  # Второй сервис
-    image: mysql:5.7
+  audit-service:
+    restart: always            # Автоматический перезапуск при падении
+    image: registry.ru/{service_name}:{version}  # Образ из приватного реестра
+    hostname: {service_name}              # Имя хоста внутри контейнера
+    command: /opt/application/service.sh  # Команда запуска
+    working_dir: /opt/application         # Рабочая директория
+    environment:              # Переменные окружения
+      CONFIG: service.config  # Конфигурационный файл
+    extra_hosts:              # Дополнительные записи в /etc/hosts
+      postgres: "{IP_HOST_POSTGRES}"
+    networks:
+      - shared-net            # Подключение к общей сети
+    logging: *logging         # Использование шаблона логирования
+
+# FRONT через Dockerfile
+  front:
+    restart: always
+    build:                    # Сборка образа из Dockerfile
+      context: ./nginx        # Контекст сборки
+      dockerfile: Dockerfile  # Имя Dockerfile
+    hostname: front
+    ports:                    # Проброс портов (хост:контейнер)
+      - 80:8080               # HTTP
+      - 443:443               # HTTPS
+    networks:
+      - shared-net
+    depends_on:               # Зависимости (запускать после этих сервисов)
+      - back
+      - conversations
+    volumes:                  # Монтирование томов
+      - ./nginx/ssl:/etc/nginx/ssl/  # SSL сертификаты
+    command: nginx -g 'daemon off;'  # Запуск nginx в foreground режиме
+    logging: *logging
+
+# KAFKA стек
+  zookeeper:                        # Сервис координации для Kafka
+    container_name: zookeeper
+    restart: always
+    image: bitnami/zookeeper:3.8.1  # Официальный образ от Bitnami
+    hostname: zookeeper
     environment:
-      - MYSQL_ROOT_PASSWORD=secret
-      - MYSQL_DATABASE=mydatabase
+      ZOOKEEPER_CLIENT_PORT: 2181   # Порт для клиентов
+      ZOOKEEPER_TICK_TIME: 2000     # Тиковое время
+      ALLOW_ANONYMOUS_LOGIN: 'yes'  # Разрешить анонимный доступ
+    ports:
+      - 2181                        # Экспорт порта (без маппинга на хост)
+    networks:
+      - shared-net
+    logging: *logging
+
+  kafka:                            # Брокер сообщений Kafka
+    container_name: kafka
+    restart: always
+    image: bitnami/kafka:3.4.0
+    depends_on:                     # Зависит от zookeeper
+      - zookeeper
+    hostname: kafka
+    environment:                    # Конфигурация Kafka
+      KAFKA_CFG_NODE_ID: 1          # ID ноды
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181  # Подключение к Zookeeper
+    volumes:
+      - "kafka_data:/bitnami"       # Том для данных Kafka
+    ports:
+      - 9092:9092                   # Маппинг порта Kafka на хост
+    networks:
+      - shared-net
+    logging: *logging
+
+  schema-registry:            # Реестр схем для Kafka
+    container_name: schema-registry
+    restart: always
+    image: bitnami/schema-registry:7.1
+    hostname: schema-registry
+    depends_on:
+      - kafka
+    volumes:
+      - ./schema-registry:/bitnami/schema-registry  # Монтирование конфигов
+    ports:
+      - 8083:8081                                   # Маппинг порта (хост:контейнер)
+    environment:
+      SCHEMA_REGISTRY_ADVERTISED_HOSTNAME: schema-registry
+      SCHEMA_REGISTRY_KAFKA_BROKERS: 'PLAINTEXT://kafka:9092'
+      SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8081
+    networks:
+      - shared-net
+    logging: *logging
+
+  kafka-ui:                   # Веб-интерфейс для администрирования Kafka
+    image: kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"           # Веб-интерфейс доступен на порту 8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local"                   # Имя кластера
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"  # Адрес брокера
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"     # Адрес Zookeeper
+    networks:
+      - shared-net
+    depends_on:
+      - kafka
+      - zookeeper
+    restart: unless-stopped   # Перезапуск, если не остановлен вручную
+
+  minio:                      # S3-совместимое объектное хранилище
+    container_name: minio
+    restart: always
+    image: registry.ru/miniodata:{version}  # Кастомный образ
+    hostname: minio
+    environment:
+      MINIO_ROOT_USER: {admin}              # Администратор
+      MINIO_ROOT_PASSWORD: {MINIO_ROOT_PASSWORD}  # Пароль
+      MINIO_SKIP_CLIENT: "yes"
+      BITNAMI_DEBUG: "true"
+    ports:
+     - 9000:9000              # API порт
+     - 9001:9001              # Консоль администрирования
+    networks:
+      - shared-net
+    volumes:
+      - /opt/minio/minio-data:/data  # Монтирование директории для данных
+    logging: *logging
+
+  redis:                      # Кэш-хранилище Redis
+    container_name: redis
+    image: redis:6            # Официальный образ Redis 6
+    hostname: redis
+    restart: always
+    networks:
+      - shared-net
+    logging: *logging
+
+# Глобальные определения сетей и томов
+networks:
+  shared-net:
+    external: true            # Сеть должна быть создана заранее
+
+volumes:
+  kafka_data:                # Именованный том для данных Kafka
+    driver: local            # Использовать локальный драйвер
 ```
-
-В этом примере у нас есть два сервиса: `web` и `db`. Сервис `web` основан на собранном образе, который находится в текущей директории.
-Он также привязан к порту `8000` и объединяет текущую директорию с `/app` внутри контейнера.
-`web` также зависит от сервиса `db`, что означает, что контейнер базы данных должен быть запущен перед запуском контейнера веб-сервера.
-
-Сервис `db` использует образ MySQL версии 5.7 и устанавливает несколько переменных окружения для настройки базы данных.
-Чтобы запустить этот `docker-compose` файл, вам нужно выполнить команду `docker-compose up` в директории, где находится этот файл. `Docker-compose` затем создаст и запустит контейнеры, описанные в файле.
-
 
 
 
